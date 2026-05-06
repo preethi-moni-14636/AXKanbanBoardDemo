@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXKanbanBoard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --ink: #111111;
+  --ink-mid: #1a1a1a;
+  --ink-dim: #4a4a4a;
+  --border: #d6d6d6;
+  --border-dark: #000000;
+  --bg: #ffffff;
+  --bg-soft: #f7f7f7;
+  --bg-paper: #f9f9f7;
+  --accent: #000000;
+  --tab-active-bg: #000000;
+  --tab-active-color: #ffffff;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ─── TAB NAV ─── */
+.tab-nav-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 2px solid var(--border-dark);
+}
+.tab-nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 64px);
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 16px 22px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms, background 150ms;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--ink); background: var(--bg-soft); }
+.tab-btn.active {
+  color: var(--bg);
+  background: var(--tab-active-bg);
+  border-bottom-color: var(--tab-active-bg);
+}
+.tab-btn .tab-num {
+  font-size: 9px;
+  opacity: 0.55;
+  letter-spacing: 0.5px;
+}
+.tab-btn.active .tab-num { opacity: 0.7; }
+
+/* ─── TAB PANELS ─── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ─── PAGE WRAPPER ─── */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 64px);
+}
+
+/* ─── MASTHEAD (Shared) ─── */
+.masthead {
+  padding: 48px 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.masthead-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 20px;
+}
+.masthead-title {
+  font-size: clamp(40px, 5.4vw, 60px);
+  font-weight: 600;
+  color: #000;
+  letter-spacing: -1.5px;
+  line-height: 1.08;
+  margin-bottom: 20px;
+  max-width: 900px;
+}
+.masthead-title strong { font-weight: 700; }
+.masthead-lede {
+  font-size: 19px;
+  color: var(--ink-mid);
+  max-width: 720px;
+  line-height: 1.55;
+  margin-bottom: 24px;
+}
+
+/* ══════════════════════════════════════
+   PANEL 1 — DEVELOPMENT JOURNEY
+══════════════════════════════════════ */
+#panel-journey .masthead-lede { max-width: none; white-space: nowrap; }
+.metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  margin: 0 0 8px;
+  width: 100%;
+}
+.metric { padding: 24px 28px 24px 0; border-right: 1px solid var(--border); }
+.metric:last-child { border-right: none; }
+.metric:not(:first-child) { padding-left: 28px; }
+.metric-value { font-size: 40px; font-weight: 600; color: #000; letter-spacing: -1.4px; line-height: 1; margin-bottom: 8px; }
+.metric-label { font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-dim); }
+
+/* ─── STEP BOXES ─── */
+.chrono-rows { display: flex; flex-direction: column; gap: 20px; padding: 24px 0 56px; }
+.step-wrapper { display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+.stage-group-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase;
+  color: #fff; background: #000; padding: 6px 14px; align-self: flex-start;
+}
+.step-box { width: 100%; border: 1px solid #000; background: #fff; position: relative; }
+.step-header {
+  display: flex; align-items: center; padding: 14px 28px;
+  border-bottom: 1px solid var(--border); background: var(--bg-soft); gap: 14px; flex-wrap: wrap;
+}
+.step-num { font-size: 14px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #000; }
+.step-duration-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 18px; font-weight: 500; color: #000;
+  background: #fff; border: 1px solid #000; padding: 6px 14px; margin-left: 12px;
+  letter-spacing: -0.2px;
+}
+.step-duration-badge svg { width: 16px; height: 16px; flex-shrink: 0; stroke: #000; }
+.step-inner { padding: 24px 32px 32px; }
+.step-title { font-size: 30px; font-weight: 600; color: #000; letter-spacing: -0.6px; line-height: 1.2; margin-bottom: 14px; }
+.step-title a { color: inherit; text-decoration: none; border-bottom: 2px solid #2e7d32; }
+.step-title a:hover { background: #f1f8f1; }
+.step-body { font-size: 17px; color: var(--ink-mid); line-height: 1.6; max-width: 760px; }
+.step-blockquote {
+  font-size: 22px; font-weight: 400; color: #000;
+  border-left: 2px dashed #000; padding: 4px 0 4px 20px; margin: 22px 0 0; line-height: 1.4;
+}
+.section-platform-icons { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.platform-icon {
+  width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--ink-mid); border-radius: 999px; color: var(--ink-mid); background: #fff;
+}
+.platform-icon svg { width: 12px; height: 12px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 500; color: #333; background: #f5f5f5; border: 1px solid #ccc; padding: 6px 11px;
+}
+.tag svg { width: 13px; height: 13px; flex-shrink: 0; stroke: #333; }
+
+/* ─── OUTCOMES ─── */
+.outcomes { border-top: 2px solid #000; border-bottom: 2px solid #000; margin: 16px 0 64px; padding: 28px 0 0; }
+.outcomes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding-bottom: 28px; }
+.outcome { padding-right: 16px; }
+.outcome-title { margin-bottom: 8px; }
+
+
+/* ══════════════════════════════════════
+   PANEL 2 — AI STORY
+══════════════════════════════════════ */
+.masthead-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.mpill {
+  font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  border: 1px solid var(--ink-mid); color: var(--ink-mid); background: #fff; padding: 5px 11px; border-radius: 2px;
+}
+.mpill.green { background: var(--ink-mid); color: #fff; border-color: var(--ink-mid); }
+.masthead-rule { width: 100%; border-top: 2px solid #000; margin-top: 36px; }
+
+/* --- Video Preview --- */
+.video-preview-block { margin-top: 24px; }
+.video-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  padding: 10px 16px 10px 10px;
+  transition: border-color 150ms, background 150ms;
+}
+.video-preview-link:hover { border-color: #000; background: #f0f0f0; }
+.video-thumb {
+  width: 140px;
+  height: 80px;
+  object-fit: cover;
+  display: block;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  background: #000;
+}
+.video-overlay { display: flex; align-items: center; gap: 10px; }
+.play-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #000; color: #fff;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.play-btn svg { width: 18px; height: 18px; margin-left: 2px; }
+.video-label {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-mid);
+}
+
+/* --- Compact Stage 01 --- */
+#story-step-1 .milestone-strip { margin: 16px 0 16px; padding-top: 16px; }
+#story-step-1 .milestone { padding-right: 20px; margin-right: 20px; }
+#story-step-1 .milestone-title { margin-bottom: 4px; }
+#story-step-1 .milestone-body { line-height: 1.5; }
+#story-step-1 .rule-rows-label { padding: 12px 0 8px; }
+#story-step-1 .rule-row { padding: 12px 0; gap: 20px; }
+#story-step-1 .rule-row-label { width: 140px; }
+#story-step-1 .rule-row-body { line-height: 1.6; }
+
+/* story step wrappers reuse .step-wrapper, .step-box, .step-header etc */
+.step-wrapper.hidden { display: none; }
+
+/* milestones */
+.milestone-strip { display: flex; border-top: 2px solid #000; padding-top: 20px; margin: 24px 0 22px; }
+.milestone { flex: 1; padding-right: 28px; border-right: 1px solid var(--border); margin-right: 28px; }
+.milestone:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+
+/* sub-headings & bodies */
+.milestone-num, .rule-rows-label, .outcomes-header { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 7px; }
+
+.milestone-title, .rule-row-label, .outcome-title, .owned-row-label, .phase-step-name { 
+  font-size: 17px; font-weight: 600; color: #000; line-height: 1.35; margin-bottom: 8px; 
+}
+
+.milestone-body, .rule-row-body, .outcome-body, .owned-row-body { 
+  font-size: 15px; color: var(--ink-mid); line-height: 1.65; 
+}
+
+/* rule rows */
+.rule-rows { border-top: 1px solid var(--border); margin-top: 2px; }
+.rule-rows-label { padding: 18px 0 14px; }
+.rule-row { display: grid; grid-template-columns: 180px 1fr; gap: 28px; padding: 18px 0; border-bottom: 1px solid #ececec; align-items: baseline; }
+.rule-row:last-child { border-bottom: none; }
+.rule-row-label { margin-bottom: 0; }
+
+/* phase cols */
+.phase-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid #000; margin-top: 4px; }
+.phase-col { background: #fff; display: flex; flex-direction: column; }
+.phase-header { font-size: 11px; font-weight: 600; letter-spacing: 1.3px; text-transform: uppercase; color: var(--ink-mid); background: var(--bg-soft); border-bottom: 1px solid var(--border); padding: 10px 18px; }
+.phase-step { padding: 14px 18px; border-bottom: 1px solid #ececec; }
+.phase-step:last-child { border-bottom: none; }
+.phase-step-num { font-size: 10px; font-weight: 600; letter-spacing: 1.3px; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 4px; }
+.phase-step-name { margin-bottom: 7px; }
+.phase-step-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-ai { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: #fff; background: var(--ink-mid); border: 1px solid var(--ink-mid); border-radius: 2px; padding: 3px 7px; }
+.chip-human { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-mid); background: #fff; border: 1px solid #bfbfbf; border-radius: 2px; padding: 3px 7px; }
+.chip-role { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-mid); background: #f3f3f3; border: 1px solid var(--border); border-radius: 2px; padding: 3px 7px; }
+
+/* footnote */
+.step-footnote { margin-top: 24px; padding: 12px 0 12px 16px; border-left: 2px dashed #000; font-size: 15px; color: var(--ink-mid); line-height: 1.65; }
+.step-footnote strong { color: #000; font-weight: 700; }
+.step-footnote code { font-family: 'Roboto Mono', monospace; font-size: 13px; background: #f3f3f3; padding: 1px 5px; border-radius: 2px; }
+
+/* owned rows */
+.owned-rows { margin-top: 4px; }
+.owned-row { display: grid; grid-template-columns: 180px 1fr; gap: 28px; padding: 18px 0; border-bottom: 1px solid #ececec; align-items: baseline; }
+.owned-row:first-child { border-top: 1px solid var(--border); }
+.owned-row-label { margin-bottom: 0; }
+.owned-row-body code { font-family: 'Roboto Mono', monospace; font-size: 13px; background: #f3f3f3; padding: 1px 5px; border-radius: 2px; }
+
+/* reveal button */
+.step-arrow-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 0; background: #fff; border: 1px solid #000; border-top: none; cursor: pointer;
+  font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-mid);
+  transition: background 180ms; margin-bottom: 40px;
+}
+.step-arrow-btn:hover { background: #f3f3f3; }
+.step-arrow-btn svg { width: 18px; height: 18px; }
+.step-arrow-btn.done { display: none; }
+
+
+/* ══════════════════════════════════════
+   PANEL 3 — FEATURES
+══════════════════════════════════════ */
+#panel-features {
+  background: #f9f9f7;
+  min-height: calc(100vh - 58px);
+}
+#panel-features .inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 64px);
+}
+#panel-features .feat-masthead {
+  padding: 56px 0 8px; text-align: center;
+}
+#panel-features .feat-masthead-title {
+  font-size: clamp(32px, 4.5vw, 48px); font-weight: 700; color: #0f172a;
+  letter-spacing: -1.5px; line-height: 1.06; margin-bottom: 16px;
+}
+.feature-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border: 1px solid rgba(15,23,42,0.12); border-radius: 4px; overflow: hidden;
+  margin: 32px 0 56px;
+}
+.feature-item {
+  padding: 18px 24px; border-right: 1px solid rgba(15,23,42,0.07); border-bottom: 1px solid rgba(15,23,42,0.07);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; background: #ffffff; transition: background 0.15s;
+}
+.feature-item:hover { background: rgba(29,78,216,0.06); }
+.feature-item:nth-child(even) { border-right: none; }
+.feature-item:nth-last-child(-n+2) { border-bottom: none; }
+.feature-name { font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.35; margin-bottom: 4px; }
+.feat-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; justify-content: center; }
+.feat-chip {
+  font-family: 'Roboto Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.8px; text-transform: uppercase; color: #4b5563;
+  background: #f9f9f7; border: 1px solid rgba(15,23,42,0.12); border-radius: 3px; padding: 2px 8px;
+}
+
+/* ── QR BLOCK ── */
+.feat-masthead-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+.qr-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.qr-wrap {
+  border: 1px solid rgba(15,23,42,0.12);
+  border-radius: 6px;
+  padding: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr-wrap img { display: block; border-radius: 2px; }
+.qr-meta { display: flex; flex-direction: column; gap: 3px; }
+.qr-label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.3px;
+}
+.qr-sub {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+/* ══════════════════════════════════════
+   PANEL 4 — TRY APPLICATION
+══════════════════════════════════════ */
+#panel-try { background: var(--bg-paper); min-height: calc(100vh - 58px); }
+#panel-try .page { padding-top: 24px; }
+#panel-try .masthead { padding: 0 0 16px; }
+#panel-try .masthead-eyebrow { display: none; }
+#panel-try .masthead-title { font-size: 32px; margin-bottom: 8px; }
+#panel-try .masthead-lede { font-size: 15px; margin-bottom: 16px; max-width: 600px; }
+.try-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 0; margin-bottom: 64px; }
+.try-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.try-card .platform-icon { width: 48px; height: 48px; margin-bottom: 16px; border-width: 2px; }
+.try-card .platform-icon svg { width: 24px; height: 24px; }
+.try-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.try-card p { display: none; }
+.try-card .qr-wrap { padding: 10px; border: 2px solid #000; border-radius: 8px; background: #fff; }
+
+@media (max-width: 768px) {
+  .try-grid { grid-template-columns: 1fr; gap: 24px; }
+}
+
+/* ─── SHARED FOOTER ─── */
+.page-footer {
+  padding: 24px 0 44px; display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; font-weight: 500; color: var(--ink-dim);
+  border-top: 1px solid var(--border); margin-top: 0;
+}
+.page-footer .brand { font-weight: 600; color: #000; }
+
+/* ─── FADE-UP ─── */
+.fade-up { opacity: 0; transform: translateY(12px); transition: opacity 320ms ease, transform 320ms ease; }
+.fade-up.in { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .fade-up { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+
+@media (max-width: 900px) {
+  body { font-size: 16px; }
+  .metrics-bar { grid-template-columns: repeat(2, 1fr); border-bottom: none; }
+  .metric { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 20px 16px; }
+  .metric:nth-child(2n) { border-right: none; }
+  .metric:not(:first-child) { padding-left: 16px; }
+  .outcomes-grid { grid-template-columns: 1fr; gap: 24px; }
+  .step-title { font-size: 24px; }
+  .step-inner { padding: 24px 20px 28px; }
+  .step-header { padding: 14px 20px; }
+  .milestone-strip { flex-direction: column; }
+  .milestone { border-right: none; margin-right: 0; padding-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+  .milestone:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .phase-cols { grid-template-columns: 1fr; }
+  .rule-row, .owned-row { grid-template-columns: 1fr; gap: 6px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .feature-item { border-right: none; }
+  .feature-item:nth-last-child(-n+2) { border-bottom: 1px solid rgba(15,23,42,0.07); }
+  .feature-item:last-child { border-bottom: none; }
+  .tab-btn { padding: 14px 14px; font-size: 10px; }
+  .tab-btn .tab-num { display: none; }
+}
+
+/* ══════════════════════════════════════
+   PANEL 0 — OVERVIEW
+══════════════════════════════════════ */
+#panel-overview .masthead { padding-bottom: 8px; }
+#panel-overview .masthead-lede { max-width: 760px; }
+
+.overview-agenda { padding: 28px 0 56px; }
+.overview-agenda-label {
+  display: inline-block;
+  font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase;
+  color: #fff; background: #000; padding: 6px 14px; margin-bottom: 18px;
+}
+.overview-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border: 1px solid #000;
+  background: var(--border);
+  gap: 1px;
+}
+.overview-card {
+  text-align: left;
+  background: #fff;
+  border: none;
+  padding: 28px 32px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 180ms;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.overview-card:hover { background: var(--bg-soft); }
+.overview-card-num {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: 1.4px; color: var(--ink-dim);
+  margin-bottom: 12px;
+}
+.overview-card-title {
+  font-size: 22px; font-weight: 600; color: #000; letter-spacing: -0.4px;
+  margin-bottom: 10px; line-height: 1.2;
+}
+.overview-card-body {
+  font-size: 15px; color: var(--ink-mid); line-height: 1.6; margin-bottom: 14px;
+}
+.overview-card-cta {
+  margin-top: auto;
+  font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase;
+  color: #000;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.overview-card-cta svg { width: 14px; height: 14px; }
+@media (max-width: 900px) {
+  .overview-cards { grid-template-columns: 1fr; }
+}
+
+/* ── Developer setup figure ── */
+.dev-setup-figure { margin: 8px 0 0; padding: 0; width: 100%; }
+.dev-setup-figure svg { display: block; width: 100%; height: auto; }
+@media (max-width: 900px) {
+  .dev-setup-figure { overflow-x: auto; }
+  .dev-setup-figure svg { min-width: 880px; }
+}
+.dev-setup-caption {
+  display: flex; flex-wrap: wrap; gap: 18px 28px;
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--ink-mid);
+}
+.dev-setup-caption .swatch {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.dev-setup-caption .swatch-box {
+  width: 12px; height: 12px; border: 1px solid #000; display: inline-block;
+}
+.dev-setup-caption .swatch-box.fill-black { background: #000; }
+.dev-setup-caption .swatch-box.fill-white { background: #fff; }
+.dev-setup-caption .swatch-box.fill-gray { background: #f7f7f7; }
+</style>
+</head>
+<body>
+
+<!-- ─── SHARED SVG DEFS ─── -->
+<svg aria-hidden="true" focusable="false" style="display:none">
+  <symbol id="ic-clock" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6"/><path d="M8 5v3.2l2 1.3"/>
+  </symbol>
+  <symbol id="ic-drag" viewBox="0 0 16 16" fill="currentColor">
+    <circle cx="5.5" cy="4" r="1.1"/><circle cx="10.5" cy="4" r="1.1"/>
+    <circle cx="5.5" cy="8" r="1.1"/><circle cx="10.5" cy="8" r="1.1"/>
+    <circle cx="5.5" cy="12" r="1.1"/><circle cx="10.5" cy="12" r="1.1"/>
+  </symbol>
+  <symbol id="ic-load" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 3v8M5 8l3 3 3-3"/><path d="M3 13h10"/>
+  </symbol>
+  <symbol id="ic-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3"/>
+  </symbol>
+  <symbol id="ic-layers" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 5.5l6-3 6 3-6 3-6-3z"/><path d="M2 9l6 3 6-3"/><path d="M2 12l6 3 6-3"/>
+  </symbol>
+  <symbol id="ic-token" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 2l5.2 3v6L8 14l-5.2-3V5L8 2z"/>
+  </symbol>
+  <symbol id="ic-toolkit" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="6" width="5" height="8" rx="1"/><rect x="2" y="2" width="5" height="5" rx="1"/>
+  </symbol>
+  <symbol id="ic-card" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 9.5h4"/>
+  </symbol>
+  <symbol id="ic-scroll" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 5h8M4 8h8M4 11h5M11 10v4M9 12l2 2 2-2"/>
+  </symbol>
+  <symbol id="ic-error" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 2.5L14 13H2L8 2.5z"/><path d="M8 6.5v3.5"/><circle cx="8" cy="11.5" r=".6" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="ic-drop" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2">
+    <rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/>
+  </symbol>
+  <symbol id="ic-multiselect" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/>
+    <path d="M10 12.5l1.3 1.3L14 10.5"/>
+  </symbol>
+  <symbol id="ic-batch" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1.5" y="5" width="8" height="7" rx="1"/><rect x="6.5" y="2" width="8" height="7" rx="1"/>
+    <path d="M13 7v3M11.5 8.5L13 10l1.5-1.5"/>
+  </symbol>
+  <symbol id="ic-zoom" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7" cy="7" r="4"/><path d="M10.2 10.2l3 3"/><path d="M5.5 7h3M7 5.5v3"/>
+  </symbol>
+  <symbol id="ic-filter" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+    <path d="M2 4h12M4.5 8h7M7 12h2"/>
+  </symbol>
+  <symbol id="ic-nav" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 8h10M9.5 5l3.5 3-3.5 3"/>
+  </symbol>
+</svg>
+
+<!-- ─── TAB NAVIGATION ─── -->
+<nav class="tab-nav-wrapper" role="tablist" aria-label="Documentation sections">
+  <div class="tab-nav">
+    <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-overview" id="tab-overview" onclick="switchTab('overview')">
+      <span class="tab-num">01</span> Overview
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-features" id="tab-features" onclick="switchTab('features')">
+      <span class="tab-num">02</span> Features
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-journey" id="tab-journey" onclick="switchTab('journey')">
+      <span class="tab-num">03</span> Development Journey
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-story" id="tab-story" onclick="switchTab('story')">
+      <span class="tab-num">04</span> AI Story
+    </button>
+    <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-try" id="tab-try" onclick="switchTab('try')">
+      <span class="tab-num">05</span> Try It
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     PANEL 0 — OVERVIEW
+══════════════════════════════════════ -->
+<div id="panel-overview" class="tab-panel active" role="tabpanel" aria-labelledby="tab-overview">
+  <main class="page">
+
+    <header class="masthead fade-up">
+      <h1 class="masthead-title">AXKanbanBoard</h1>
+      <p class="masthead-lede">A Kanban component for Android and iOS, built with AI agents under human direction.</p>
+      <div class="metrics-bar" role="list" aria-label="Project key metrics">
+        <div class="metric" role="listitem">
+          <div class="metric-value">14</div>
+          <div class="metric-label">Features</div>
+        </div>
+        <div class="metric" role="listitem">
+          <div class="metric-value">2</div>
+          <div class="metric-label">Platforms</div>
+        </div>
+        <div class="metric" role="listitem">
+          <div class="metric-value">12</div>
+          <div class="metric-label">Weeks</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="overview-agenda fade-up">
+      <div class="overview-cards">
+        <button type="button" class="overview-card" onclick="switchTab('features')">
+          <div class="overview-card-num">01 · Features</div>
+          <div class="overview-card-title">What we built</div>
+          <p class="overview-card-body">The 14 capabilities in the library — drag &amp; drop, multi-select, undo / redo, full-screen, scroll modes, drop zones, and more.</p>
+          <span class="overview-card-cta">View features <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9.5 5l3.5 3-3.5 3"/></svg></span>
+        </button>
+        <button type="button" class="overview-card" onclick="switchTab('journey')">
+          <div class="overview-card-num">02 · Development Journey</div>
+          <div class="overview-card-title">How long it took</div>
+          <p class="overview-card-body">Five stages from one prompt to a production-ready library on Android and iOS — with the timeline for each.</p>
+          <span class="overview-card-cta">See the timeline <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9.5 5l3.5 3-3.5 3"/></svg></span>
+        </button>
+        <button type="button" class="overview-card" onclick="switchTab('story')">
+          <div class="overview-card-num">03 · AI Story</div>
+          <div class="overview-card-title">How we built it</div>
+          <p class="overview-card-body">The playbook — six steps, four agents, and the rules that kept humans accountable for every merge.</p>
+          <span class="overview-card-cta">Read the playbook <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9.5 5l3.5 3-3.5 3"/></svg></span>
+        </button>
+        <button type="button" class="overview-card" onclick="switchTab('try')">
+          <div class="overview-card-num">04 · Try It</div>
+          <div class="overview-card-title">See it for yourself</div>
+          <p class="overview-card-body">Scan a QR code to install the demo on Android or iOS and explore every feature first-hand.</p>
+          <span class="overview-card-cta">Install the demo <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9.5 5l3.5 3-3.5 3"/></svg></span>
+        </button>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <span class="brand">AXKanbanBoard</span>
+      <span>Android &nbsp;·&nbsp; iOS</span>
+    </footer>
+  </main>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANEL 1 — DEVELOPMENT JOURNEY
+══════════════════════════════════════ -->
+<div id="panel-journey" class="tab-panel" role="tabpanel" aria-labelledby="tab-journey">
+  <main class="page">
+
+    <header class="masthead fade-up">
+      <div class="masthead-eyebrow">Development Journey</div>
+      <h1 class="masthead-title">From prompt to production-ready in around 12 weeks.</h1>
+      <p class="masthead-lede">Five stages. From the first prompt to fourteen features built on Android and iOS.</p>
+    </header>
+
+    <div class="chrono-rows">
+
+      <!-- Stage 01 -->
+      <div class="step-wrapper fade-up">
+        <div class="stage-group-label">Experimentation</div>
+        <article class="step-box" aria-labelledby="stage-01-title">
+          <div class="step-header">
+            <div class="step-num">The Probe</div>
+            <div class="section-platform-icons" aria-label="Section platforms">
+              <span class="platform-icon" aria-label="Android" title="Android"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 1.5c-.96 0-1.86.23-2.66.63L7.85.65c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.955 5.955 0 0 0 6 7h12c0-1.98-.97-3.73-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg></span>
+            </div>
+            <div class="step-duration-badge"><svg aria-hidden="true" focusable="false"><use href="#ic-clock"/></svg>5 minutes</div>
+          </div>
+          <div class="step-inner">
+            <h2 id="stage-01-title" class="step-title">One liner prompt</h2>
+            <p class="step-body">No spec, framework, or architecture guide. A baseline test of what the AI would produce unaided. The 5-minute output was impressive but not useful — missing architecture, brittle interactions, and gaps in core behaviour.</p>
+            <blockquote class="step-blockquote">"Build a Kanban Board."</blockquote>
+            <div class="video-preview-block">
+              <a href="https://workdrive.zoho.in/file/t1lwmebe82dc1aab24fe598a502339a72dd25" target="_blank" class="video-preview-link" title="Watch one liner prompt result">
+                <video class="video-thumb" src="https://workdrive.zoho.in/file/t1lwmebe82dc1aab24fe598a502339a72dd25" muted playsinline preload="metadata"></video>
+                <div class="video-overlay">
+                  <div class="play-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                  <span class="video-label">Watch preview</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Stage 02 -->
+      <div class="step-wrapper fade-up">
+        <article class="step-box" aria-labelledby="stage-02-title">
+          <div class="step-header">
+            <div class="step-num">Baseline Build</div>
+            <div class="section-platform-icons">
+              <span class="platform-icon" aria-label="Android" title="Android"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 1.5c-.96 0-1.86.23-2.66.63L7.85.65c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.955 5.955 0 0 0 6 7h12c0-1.98-.97-3.73-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg></span>
+            </div>
+            <div class="step-duration-badge"><svg aria-hidden="true" focusable="false"><use href="#ic-clock"/></svg>5 weeks</div>
+          </div>
+          <div class="step-inner">
+            <h2 id="stage-02-title" class="step-title">Core functionality</h2>
+            <p class="step-body">Working Android prototype covering the core Kanban interactions. Took 5 weeks — the build plus time spent getting familiar with AI-assisted development.</p>
+            <div class="tag-row">
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-drag"/></svg>Drag &amp; Drop</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-load"/></svg>Load More</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-scroll"/></svg>Auto-Scroll</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Stage 03 -->
+      <div class="step-wrapper fade-up">
+        <article class="step-box" aria-labelledby="stage-03-title">
+          <div class="step-header">
+            <div class="step-num">Architectural Refit</div>
+            <div class="section-platform-icons">
+              <span class="platform-icon" aria-label="Android" title="Android"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 1.5c-.96 0-1.86.23-2.66.63L7.85.65c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.955 5.955 0 0 0 6 7h12c0-1.98-.97-3.73-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg></span>
+            </div>
+            <div class="step-duration-badge"><svg aria-hidden="true" focusable="false"><use href="#ic-clock"/></svg>½ week</div>
+          </div>
+          <div class="step-inner">
+            <h2 id="stage-03-title" class="step-title">Rebuild on a stable foundation</h2>
+            <p class="step-body">Replaced the prototype with MVI architecture, a unified design-token system,and as a component.</p>
+            <div class="tag-row">
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-layers"/></svg>State Architecture</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-token"/></svg>Design System</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-toolkit"/></svg>Component Library</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Stage 04 -->
+      <div class="step-wrapper fade-up">
+        <div class="stage-group-label">Streamlined Delivery</div>
+        <article class="step-box" aria-labelledby="stage-04-title">
+          <div class="step-header">
+            <div class="step-num">Phase 1</div>
+            <div class="section-platform-icons">
+              <span class="platform-icon" aria-label="Android" title="Android"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 1.5c-.96 0-1.86.23-2.66.63L7.85.65c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.955 5.955 0 0 0 6 7h12c0-1.98-.97-3.73-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg></span>
+              <span class="platform-icon" aria-label="iOS" title="iOS"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg></span>
+            </div>
+            <div class="step-duration-badge"><svg aria-hidden="true" focusable="false"><use href="#ic-clock"/></svg>2½ weeks</div>
+          </div>
+          <div class="step-inner">
+            <h2 id="stage-04-title" class="step-title"><a href="https://repository.zohocorpcloud.in/zohocorp/user/Preethi18/AXKanban#/blob/main/AXKanban/phases/Phase1.md" target="_blank" rel="noopener noreferrer">First spec cycle</a></h2>
+            <p class="step-body">The first spec cycle covered the basics — a functional base ready for people to use.</p>
+            <div class="tag-row">
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-card"/></svg>Card Layouts</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-layers"/></svg>Column Header</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-error"/></svg>Error States</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-drop"/></svg>Drag and Drop</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-scroll"/></svg>Column Pager</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-load"/></svg>Pull-to-Refresh</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Stage 05 -->
+      <div class="step-wrapper fade-up">
+        <article class="step-box" aria-labelledby="stage-05-title">
+          <div class="step-header">
+            <div class="step-num">Phase 2</div>
+            <div class="section-platform-icons">
+              <span class="platform-icon" aria-label="Android" title="Android"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 1.5c-.96 0-1.86.23-2.66.63L7.85.65c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.955 5.955 0 0 0 6 7h12c0-1.98-.97-3.73-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg></span>
+              <span class="platform-icon" aria-label="iOS" title="iOS"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg></span>
+            </div>
+            <div class="step-duration-badge"><svg aria-hidden="true" focusable="false"><use href="#ic-clock"/></svg>3½ weeks</div>
+          </div>
+          <div class="step-inner">
+            <h2 id="stage-05-title" class="step-title"><a href="https://repository.zohocorpcloud.in/zohocorp/user/Preethi18/AXKanban#/blob/main/AXKanban/phases/Phase2.md" target="_blank" rel="noopener noreferrer">Second spec cycle</a></h2>
+            <p class="step-body">With the basics solid, the second cycle went after depth — letting people act on many cards at once, reshape the view to suit the work, and step back from a wrong move without losing their place.</p>
+            <div class="tag-row">
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-multiselect"/></svg>Multi-select</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-batch"/></svg>Batch Drag and Drop</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-zoom"/></svg>Board Zoom</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-filter"/></svg>Sort / Filter</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-nav"/></svg>Column Reorder</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-expand"/></svg>Full-Screen</span>
+              <span class="tag"><svg aria-hidden="true" focusable="false"><use href="#ic-layers"/></svg>Undo / Redo</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+    </div>
+
+    <footer class="page-footer">
+      <span class="brand">AXKanbanBoard</span>
+      <span>14 features · Android · iOS</span>
+    </footer>
+  </main>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANEL 2 — AI STORY
+══════════════════════════════════════ -->
+<div id="panel-story" class="tab-panel" role="tabpanel" aria-labelledby="tab-story">
+  <main class="page">
+
+    <header class="masthead fade-up" id="story-masthead">
+      <div class="masthead-eyebrow">A Playbook for Building with AI</div>
+      <h1 class="masthead-title">Built with AI agents.</h1>
+      <p class="masthead-lede">One prompt grew into a coordinated workflow — four AI agents, six repeatable steps, and a human at every merge. Here is the playbook: how we contracted the work, where AI led, and where humans stayed accountable.</p>
+      <div class="masthead-pills">
+        <span class="mpill green">Claude</span>
+        <span class="mpill green">Copilot</span>
+        <span class="mpill">4 agents</span>
+        <span class="mpill">6 steps</span>
+      </div>
+      <div class="masthead-rule"></div>
+    </header>
+
+    <div class="chrono-rows">
+
+      <!-- Story Stage 01 -->
+      <div class="step-wrapper fade-up" id="story-step-1">
+        <div class="step-box">
+          <div class="step-inner">
+            <h2 class="step-title">Working Principles</h2>
+            <div class="rule-rows">
+              <div class="rule-row">
+                <div class="rule-row-label">Spec first</div>
+                <p class="rule-row-body">Every feature was written down before code. The spec named every component and design token — no subjective calls at review.</p>
+              </div>
+              <div class="rule-row">
+                <div class="rule-row-label">Plan before code</div>
+                <p class="rule-row-body">Each feature started with a planning pass: the agent traced files and produced a checklist. Code only started after approval.</p>
+              </div>
+              <div class="rule-row">
+                <div class="rule-row-label">Humans own the merge</div>
+                <p class="rule-row-body">Agents flagged spec gaps and off-spec choices. Every change was reviewed and pushed by a human. The pipeline ends with a human.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Story Stage 02 -->
+      <div class="step-wrapper fade-up" id="story-step-2">
+        <div class="step-box">
+          <div class="step-inner">
+            <h2 class="step-title">The Six-Step Pipeline</h2>
+            <div class="phase-cols">
+              <div class="phase-col">
+                <div class="phase-header">Define</div>
+                <div class="phase-step">
+                  <div class="phase-step-num">01</div>
+                  <div class="phase-step-name">Design Handover</div>
+                  <div class="phase-step-chips"><span class="chip-human">Designer</span><span class="chip-ai">LLM</span><span class="chip-role">spec-writer</span></div>
+                </div>
+                <div class="phase-step">
+                  <div class="phase-step-num">02</div>
+                  <div class="phase-step-name">Agent Audit</div>
+                  <div class="phase-step-chips"><span class="chip-ai">LLM</span><span class="chip-role">design-reviewer</span></div>
+                </div>
+                <div class="phase-step">
+                  <div class="phase-step-num">03</div>
+                  <div class="phase-step-name">Checklist Derivation</div>
+                  <div class="phase-step-chips"><span class="chip-ai">LLM</span><span class="chip-human">Dev</span><span class="chip-role">dev-checklist</span></div>
+                </div>
+              </div>
+              <div class="phase-col">
+                <div class="phase-header">Build</div>
+                <div class="phase-step">
+                  <div class="phase-step-num">04</div>
+                  <div class="phase-step-name">Implement &amp; Test</div>
+                  <div class="phase-step-chips"><span class="chip-ai">LLM</span><span class="chip-human">Dev</span></div>
+                </div>
+              </div>
+              <div class="phase-col">
+                <div class="phase-header">Verify</div>
+                <div class="phase-step">
+                  <div class="phase-step-num">05</div>
+                  <div class="phase-step-name">Double-Gate Review</div>
+                  <div class="phase-step-chips"><span class="chip-ai">LLM</span><span class="chip-human">Dev</span></div>
+                </div>
+                <div class="phase-step">
+                  <div class="phase-step-num">06</div>
+                  <div class="phase-step-name">Tracker</div>
+                  <div class="phase-step-chips"><span class="chip-ai">LLM</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Story Stage — Developer setup (visual) -->
+      <div class="step-wrapper fade-up" id="story-step-setup">
+        <div class="step-box">
+          <div class="step-inner">
+            <h2 class="step-title">Repository Architecture</h2>
+            <p class="step-body" style="margin-bottom: 24px;">The AI spec and agent configuration sit in the parent repo. Each developer's platform project lives inside that folder as a separate git repo, kept out of the parent's index by <code>.gitignore</code>.</p>
+            <figure class="dev-setup-figure">
+              <svg viewBox="0 0 880 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A parent AI spec repository with its folder tree. The tree's last entry, axkanban/, is itself a separate git repository — either an iOS or an Android project depending on the developer — kept out of the parent's index by .gitignore.">
+
+                <!-- ─── PARENT REPO ─── -->
+                <rect x="20" y="60" width="840" height="580" fill="#fff" stroke="#000" stroke-width="2"/>
+                <rect x="40" y="40" width="290" height="36" fill="#000"/>
+                <text x="58" y="63" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.6" fill="#fff">PARENT REPO · SHARED</text>
+
+                <text x="40" y="110" font-family="Inter, sans-serif" font-size="20" font-weight="600" fill="#000">AI Spec Repository</text>
+                <text x="40" y="132" font-family="Inter, sans-serif" font-size="13" fill="#4a4a4a">Shared source of truth — specs, agent configs, design tokens.</text>
+
+                <text x="40" y="170" font-family="Inter, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2" fill="#888">FOLDER STRUCTURE</text>
+
+                <g font-family="Roboto Mono, monospace" font-size="13" fill="#000">
+                  <text x="40" y="194">ai-spec-repo/</text>
+                  <text x="40" y="214">├─ SPEC.md</text>
+                  <text x="40" y="234">├─ .agents/</text>
+                  <text x="40" y="254">│  ├─ spec-writer.md</text>
+                  <text x="40" y="274">│  ├─ design-reviewer.md</text>
+                  <text x="40" y="294">│  ├─ dev-checklist.md</text>
+                  <text x="40" y="314">│  └─ tracker.md</text>
+                  <text x="40" y="334">├─ design-tokens.json</text>
+                  <text x="40" y="354">├─ .gitignore</text>
+                  <text x="40" y="374">└─ axkanban/</text>
+                </g>
+
+                <text x="240" y="354" font-family="Inter, sans-serif" font-size="13" fill="#4a4a4a">→ excludes axkanban/</text>
+                <text x="200" y="374" font-family="Inter, sans-serif" font-size="13" font-weight="600" fill="#000">↓ child repo (separate .git)</text>
+
+                <!-- ─── CHILD REPO (inset) ─── -->
+                <rect x="40" y="400" width="800" height="220" fill="#fafafa" stroke="#000" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <rect x="60" y="384" width="280" height="32" fill="#fff" stroke="#000" stroke-width="1.5"/>
+                <text x="78" y="405" font-family="Inter, sans-serif" font-size="11" font-weight="700" letter-spacing="1.6" fill="#000">CHILD REPO · SEPARATE .git</text>
+
+                <text x="60" y="442" font-family="Roboto Mono, monospace" font-size="16" font-weight="700" fill="#000">axkanban/</text>
+                <text x="60" y="464" font-family="Inter, sans-serif" font-size="13" fill="#4a4a4a">Each developer clones one variant. Both share the same project shape.</text>
+
+                <!-- iOS variant -->
+                <rect x="60" y="478" width="370" height="128" fill="#fff" stroke="#000"/>
+                <text x="74" y="500" font-family="Inter, sans-serif" font-size="12" font-weight="700" letter-spacing="0.8" fill="#000">iOS PROJECT</text>
+                <g font-family="Roboto Mono, monospace" font-size="12" fill="#000">
+                  <text x="74" y="522">axkanban/</text>
+                  <text x="74" y="540">├─ .git/</text>
+                  <text x="74" y="558">├─ AXKanban.xcodeproj</text>
+                  <text x="74" y="576">├─ App/</text>
+                  <text x="74" y="594">└─ Kanban/</text>
+                </g>
+                <text x="280" y="594" font-family="Roboto Mono, monospace" font-size="11" fill="#4a4a4a">KB*.swift</text>
+
+                <!-- OR -->
+                <text x="450" y="545" font-family="Inter, sans-serif" font-size="14" font-weight="700" letter-spacing="1.4" fill="#888" text-anchor="middle">OR</text>
+
+                <!-- Android variant -->
+                <rect x="470" y="478" width="370" height="128" fill="#fff" stroke="#000"/>
+                <text x="484" y="500" font-family="Inter, sans-serif" font-size="12" font-weight="700" letter-spacing="0.8" fill="#000">ANDROID PROJECT</text>
+                <g font-family="Roboto Mono, monospace" font-size="12" fill="#000">
+                  <text x="484" y="522">axkanban/</text>
+                  <text x="484" y="540">├─ .git/</text>
+                  <text x="484" y="558">├─ build.gradle.kts</text>
+                  <text x="484" y="576">├─ app/</text>
+                  <text x="484" y="594">└─ kanban/</text>
+                </g>
+                <text x="690" y="594" font-family="Roboto Mono, monospace" font-size="11" fill="#4a4a4a">KB*.kt</text>
+
+              </svg>
+            </figure>
+          </div>
+        </div>
+      </div>
+
+      <!-- Story Stage 03 -->
+      <div class="step-wrapper fade-up" id="story-step-3">
+        <div class="step-box">
+          <div class="step-inner">
+            <h2 class="step-title">Constraints</h2>
+            <div class="owned-rows">
+              <div class="owned-row">
+                <div class="owned-row-label">Shared component library</div>
+                <p class="owned-row-body">The shared toolkit — <code>AXText</code>, <code>AXButton</code>, <code>AXIconButton</code>, <code>AXMessage</code>, <code>AXBanner</code>, <code>AXToast</code>, <code>AXLinearProgressBar</code>, <code>AXTextChip</code> — and the <code>*Data</code> / <code>*Properties</code> split on every component. Set once by the team; agents referenced it thousands of times.</p>
+              </div>
+              <div class="owned-row">
+                <div class="owned-row-label">Design tokens</div>
+                <p class="owned-row-body">Every color and font comes from a Focas <code>sys_*</code> token. Hardcoded hex values or platform-default fonts were a spec violation — agents were instructed to flag them on sight. Zero escaped to main.</p>
+              </div>
+              <div class="owned-row">
+                <div class="owned-row-label">State architecture</div>
+                <p class="owned-row-body">The <code>KBIntent</code> / <code>KBViewState</code> / <code>KBEvent</code> MVI state model was defined by engineers before Phase 1 began. Agents could execute within it but never deviate from it.</p>
+              </div>
+              <div class="owned-row">
+                <div class="owned-row-label">Human-owned merge</div>
+                <p class="owned-row-body">No AI ever had commit rights. Every change — including AI-generated test files — required a human to stage, review, and push. The pipeline always ends with a human decision.</p>
+              </div>
+            </div>
+            <div class="step-footnote" style="margin-top:24px;">
+              <strong>Every decision above was set once by humans, then referenced thousands of times by agents.</strong> Agents executed inside those boundaries — never across them.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="page-footer">
+      <span class="brand">AXKanban</span>
+      <span>AI Development Playbook &nbsp;·&nbsp; 4 agents &nbsp;·&nbsp; 6 steps</span>
+    </footer>
+  </main>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANEL 3 — FEATURES
+══════════════════════════════════════ -->
+<div id="panel-features" class="tab-panel" role="tabpanel" aria-labelledby="tab-features">
+  <div class="inner">
+    <header class="feat-masthead fade">
+      <div class="feat-masthead-inner">
+        <h1 class="feat-masthead-title">14 features. Two platforms.</h1>
+      </div>
+    </header>
+
+    <div class="feature-grid fade">
+
+      <div class="feature-item">
+        <div class="feature-name">Drag &amp; Drop</div>
+        <div class="feat-chips"><span class="feat-chip">Single</span><span class="feat-chip">Batch</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Column Reorder</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Multi-Select</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Undo / Redo</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Column Expand / Collapse</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Full-Screen Mode</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Pinch-to-Zoom / Density</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Inline Column Position</div>
+        <div class="feat-chips"><span class="feat-chip">Leading</span><span class="feat-chip">Trailing</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Inline Column Display</div>
+        <div class="feat-chips"><span class="feat-chip">Compact</span><span class="feat-chip">Normal</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Scroll Modes</div>
+        <div class="feat-chips"><span class="feat-chip">Free Scroll</span><span class="feat-chip">Column Pager</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Drop Zone Mode</div>
+        <div class="feat-chips"><span class="feat-chip">Auto</span><span class="feat-chip">Bottom Sheet</span><span class="feat-chip">Inline Column</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Error Handling</div>
+        <div class="feat-chips"><span class="feat-chip">Board Level Error</span><span class="feat-chip">Partial Error</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Collapse Drop</div>
+        <div class="feat-chips"><span class="feat-chip">Expand</span><span class="feat-chip">Stay</span><span class="feat-chip">Reject</span></div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-name">Column Hug Mode</div>
+      </div>
+
+    </div>
+
+    <footer class="page-footer">
+      <span class="brand">AXKanbanBoard</span>
+      <span>14 features · Android · iOS</span>
+    </footer>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PANEL 4 — TRY APPLICATION
+══════════════════════════════════════ -->
+<div id="panel-try" class="tab-panel" role="tabpanel" aria-labelledby="tab-try">
+  <main class="page">
+    <header class="masthead fade-up">
+      <div class="masthead-eyebrow">Experience the component</div>
+      <h1 class="masthead-title">Try AXKanbanBoard</h1>
+      <p class="masthead-lede">Scan the QR codes below to install the demo application on your device. Available for both Android and iOS.</p>
+    </header>
+
+    <div class="try-grid">
+      <!-- Android -->
+      <div class="try-card fade-up">
+        <div class="platform-icon" aria-label="Android"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 1.5c-.96 0-1.86.23-2.66.63L7.85.65c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.955 5.955 0 0 0 6 7h12c0-1.98-.97-3.73-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg></div>
+        <h2>Android</h2>
+        <p>Get the latest build for Android devices.</p>
+        <div class="qr-wrap">
+          <img id="qr-android" src="" alt="Android QR" width="160" height="160"/>
+        </div>
+      </div>
+
+      <!-- iOS -->
+      <div class="try-card fade-up">
+        <div class="platform-icon" aria-label="iOS"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg></div>
+        <h2>iOS</h2>
+        <p>Install on iOS using the direct distribution link.</p>
+        <div class="qr-wrap">
+          <img id="qr-ios" src="" alt="iOS QR" width="160" height="160"/>
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <span class="brand">AXKanbanBoard</span>
+      <span>Download Demo &nbsp;·&nbsp; v1.0.0</span>
+    </footer>
+  </main>
+</div>
+
+
+<script>
+// ─── TAB SWITCHING ───
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.id === 'tab-' + name);
+    b.setAttribute('aria-selected', b.id === 'tab-' + name ? 'true' : 'false');
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── INTERSECTION OBSERVER (fade-up) ───
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); }
+  });
+}, { threshold: 0.05 });
+document.querySelectorAll('.fade-up, .fade').forEach((el, i) => {
+  el.style.transitionDelay = (i * 50) + 'ms';
+  obs.observe(el);
+});
+
+// ─── QR CODES ───
+(function() {
+  const androidUrl = 'https://zohoota-60066298984.development.catalystserverless.in/app/install.html?id=87391cfbc09c182ecf23c44201dab3e5';
+  const iosUrl = 'https://zohoota-60066298984.development.catalystserverless.in/app/install.html?id=0e4841db58b803ac158cc544b7fad241';
+  
+  const androidQr = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&color=000000&bgcolor=ffffff&data=' + encodeURIComponent(androidUrl);
+  const iosQr = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=0&color=000000&bgcolor=ffffff&data=' + encodeURIComponent(iosUrl);
+  
+  const androidImg = document.getElementById('qr-android');
+  const iosImg = document.getElementById('qr-ios');
+  
+  if (androidImg) androidImg.src = androidQr;
+  if (iosImg) iosImg.src = iosQr;
+})();
+</script>
+</body>
+</html>
